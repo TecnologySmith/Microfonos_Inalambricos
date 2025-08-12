@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micrófonos Inalámbricos Pro - TecnologySmith</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0a09; /* Stone-950: Un gris casi negro, muy oscuro */
+            color: #e5e7eb; /* Gris claro para el texto general */
+        }
+        .section-title {
+            position: relative;
+            padding-bottom: 1rem; /* Más espacio debajo del título */
+            margin-bottom: 3.5rem; /* Más espacio debajo del título de sección */
+            font-weight: 800; /* Extra bold */
+            color: #f8fafc; /* Blanco puro para los títulos */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Sombra sutil para destacar */
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100px; /* Más largo */
+            height: 6px; /* Más grueso */
+            background-color: #22d3ee; /* Cyan-400: Un azul cian vibrante */
+            border-radius: 9999px;
+        }
+        /* Estilos para el overlay de la galería */
+        .gallery-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.98); /* Casi opaco */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease; /* Transición más lenta y suave */
+        }
+        .gallery-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .gallery-content {
+            position: relative;
+            max-width: 95%; /* Un poco más de ancho */
+            max-height: 95%; /* Un poco más de alto */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .gallery-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 1.5rem; /* rounded-3xl */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7); /* Sombra más profunda */
+            border: 2px solid #22d3ee; /* Borde cian */
+        }
+        .gallery-nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(34, 211, 238, 0.2); /* Cyan-400 transparente */
+            color: white;
+            padding: 1rem 1.5rem; /* Más grandes */
+            border-radius: 9999px;
+            font-size: 3rem; /* Aún más grandes */
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.4s ease, transform 0.4s ease;
+            backdrop-filter: blur(8px); /* Efecto de desenfoque más fuerte */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Borde sutil */
+        }
+        .gallery-nav-button:hover {
+            background-color: rgba(34, 211, 238, 0.4);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .gallery-prev {
+            left: -5rem;
+        }
+        .gallery-next {
+            right: -5rem;
+        }
+        .gallery-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1.4rem;
+            border-radius: 9999px;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: background-color 0.4s ease, transform 0.4s ease;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .gallery-close:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* Responsive adjustments for gallery buttons */
+        @media (max-width: 768px) {
+            .gallery-prev {
+                left: 0.5rem;
+                padding: 0.5rem 1rem;
+                font-size: 2rem;
+            }
+            .gallery-next {
+                right: 0.5rem;
+                padding: 0.5rem 1rem;
+                font-size: 2rem;
+            }
+            .gallery-close {
+                top: 0.5rem;
+                right: 0.5rem;
+                padding: 0.4rem 0.8rem;
+                font-size: 1.8rem;
+            }
+            .gallery-prev, .gallery-next {
+                position: fixed;
+            }
+        }
+        .button-glow {
+            box-shadow: 0 0px 15px rgba(34, 211, 238, 0.6); /* Cyan glow */
+        }
+        .button-glow:hover {
+            box-shadow: 0 0px 25px rgba(34, 211, 238, 0.8); /* Stronger glow on hover */
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #22d3ee;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-gray-900 shadow-2xl py-6 px-8 md:px-20 rounded-b-3xl border-b border-cyan-700">
+            <div class="container mx-auto flex justify-between items-center">
+                <a href="#" class="flex items-center text-5xl font-extrabold text-cyan-400 tracking-wider">
+                    <img src="https://cdn1.telesco.pe/file/OS7G_-bpVWKdk80Y0oAIFSPmVuWC7BoliQeNVQUjvQglLFQavByP_6TW-6ZJ5NsrNgKzqJttt6tLWb27hQq9sL1dEXVzg4uYM2WhsQPhZBc6z775nxRfXJzurcM1NAkW-IS9kLRqkdeP9pRsCLVA2Tbpd-hXINy13DG015MlovTWrZi-DnTVLTyzK5f1lphjqafNe038AWyCGv5fEAjXW3iSeg1UerCPl3WVq915feQi0QQZc9Md2ZAh0ziO0K5YVWgX4aKJXgqaRdHEf-j_7hX3bE1rSjCwZRcJr8jwIu4QFnw64fVTn6h-i76026LbphnSZ8UP2e0PilFSaCfHFA.jpg"
+                         alt="TecnologySmith Logo" class="h-12 w-auto mr-4 rounded-full border border-cyan-500 p-1">
+                    TecnologySmith
+                </a>
+                <nav>
+                    <!-- Puedes añadir enlaces de navegación aquí si es necesario -->
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-12 md:py-20">
+            <!-- Product Hero Section -->
+            <section class="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20 bg-gray-900 p-10 md:p-16 rounded-3xl shadow-2xl mb-20 border border-gray-800">
+                <div class="md:w-1/2 text-center md:text-left">
+                    <h1 class="text-6xl md:text-7xl font-black text-white mb-8 leading-tight drop-shadow-xl">Micrófonos Inalámbricos <span class="text-cyan-400">2 en 1</span></h1>
+                    <h2 class="text-4xl md:text-5xl font-bold text-gray-300 mb-10 leading-snug">Captura Audio Profesional Sin Límites para iOS y Android</h2>
+                    <p class="text-xl md:text-2xl text-gray-400 mb-12 leading-relaxed">
+                        Libera tu creatividad con una calidad de audio impecable. Diseñados para creadores de contenido, periodistas y entusiastas, nuestros micrófonos ofrecen una claridad cristalina y una conexión instantánea para que nunca pierdas un momento.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-6 mb-12">
+                        <p class="text-6xl font-extrabold text-lime-400 drop-shadow-lg">
+                            $60.000 <span class="text-3xl font-medium text-lime-300">COP</span>
+                        </p>
+                    </div>
+                    <a href="https://wa.me/573222117202?text=Hola!%20Vengo%20de%20la%20p%C3%A1gina%20web%20y%20quiero%20comprar%20los%20micr%C3%B3fonos."
+                       class="inline-block bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-extrabold py-5 px-14 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-2xl tracking-wide uppercase button-glow">
+                        Comprar Ahora <span class="ml-4 text-3xl">➡️</span>
+                    </a>
+                    <p class="text-yellow-400 text-xl mt-8 font-semibold animate-pulse">
+                        <span class="bg-gray-800 px-4 py-2 rounded-xl shadow-md">
+                            ¡Sígenos en <a href="https://www.facebook.com/tecnology.smith" target="_blank" class="underline hover:text-yellow-300 transition-colors">Facebook</a> y obtén un bono de <span class="text-white">$5.000 COP</span>! ✨
+                        </span>
+                    </p>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <!-- Main Product Image -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_901263-MLU72321220448_102023-F.webp"
+                         alt="Micrófonos Inalámbricos 2 en 1"
+                         class="w-full max-w-xl rounded-3xl shadow-3xl transition-transform duration-700 hover:scale-102 border-4 border-cyan-600">
+                </div>
+            </section>
+
+            <!-- Gemini AI Features Section -->
+            <section class="bg-gray-900 p-10 md:p-16 rounded-3xl shadow-2xl mb-20 border border-gray-800">
+                <h3 class="text-4xl font-black text-white mb-12 section-title">Potencia Tu Creación con IA ✨</h3>
+
+                <div class="flex flex-col lg:flex-row gap-10">
+                    <!-- Content Idea Generator -->
+                    <div class="lg:w-1/2 bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-700">
+                        <h4 class="text-3xl font-bold text-cyan-400 mb-6">Generador de Ideas de Contenido ✨</h4>
+                        <p class="text-gray-300 mb-6">Describe tu proyecto o tipo de contenido (ej: 'Quiero iniciar un podcast de historia', 'Necesito ideas para videos de unboxing', 'Estoy planeando una entrevista').</p>
+                        <textarea id="contentIdeaInput" class="w-full h-32 p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-6" placeholder="Ej: Podcast de cocina vegana para principiantes"></textarea>
+                        <button id="generateIdeasBtn" class="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold py-4 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl button-glow">
+                            Generar Ideas ✨
+                        </button>
+                        <div id="ideasLoading" class="hidden flex justify-center items-center mt-6">
+                            <div class="loading-spinner"></div>
+                            <p class="ml-4 text-gray-400">Generando ideas...</p>
+                        </div>
+                        <div id="contentIdeasOutput" class="mt-8 p-6 bg-gray-700 rounded-lg border border-gray-600 text-gray-200 min-h-[100px] overflow-auto">
+                            <p class="text-gray-400">Las ideas generadas aparecerán aquí.</p>
+                        </div>
+                    </div>
+
+                    <!-- Slogan Generator -->
+                    <div class="lg:w-1/2 bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-700">
+                        <h4 class="text-3xl font-bold text-cyan-400 mb-6">Generador de Slogans para Tu Contenido ✨</h4>
+                        <p class="text-gray-300 mb-6">Describe brevemente tu contenido o canal (ej: 'Canal de reseñas de gadgets', 'Vlogs de viajes por Sudamérica').</p>
+                        <textarea id="sloganInput" class="w-full h-32 p-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-6" placeholder="Ej: Mi canal de videojuegos retro"></textarea>
+                        <button id="generateSlogansBtn" class="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold py-4 px-6 rounded-full shadow-lg transform transition duration-300 hover:scale-105 text-xl button-glow">
+                            Generar Slogans ✨
+                        </button>
+                        <div id="slogansLoading" class="hidden flex justify-center items-center mt-6">
+                            <div class="loading-spinner"></div>
+                            <p class="ml-4 text-gray-400">Generando slogans...</p>
+                        </div>
+                        <div id="sloganOutput" class="mt-8 p-6 bg-gray-700 rounded-lg border border-gray-600 text-gray-200 min-h-[100px] overflow-auto">
+                            <p class="text-gray-400">Los slogans generados aparecerán aquí.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- /Gemini AI Features Section -->
+
+            <!-- Gallery Section -->
+            <section class="bg-gray-900 p-10 md:p-16 rounded-3xl shadow-2xl mb-20 border border-gray-800">
+                <h3 class="text-4xl font-black text-white mb-12 section-title">Explora en Detalle</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                    <!-- Image 1 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_901263-MLU72321220448_102023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 1"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="0">
+                    <!-- Image 2 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_745250-MLU72386769651_102023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 2"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="1">
+                    <!-- Image 3 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_678704-MLU72386769661_102023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 3"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="2">
+                    <!-- Image 4 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_846430-MLU72386623059_102023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 4"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="3">
+                    <!-- Image 5 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_896327-MLU72386623067_102023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 5"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="4">
+                    <!-- Image 6 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_872481-MLU72386623073_102023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 6"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="5">
+                    <!-- Image 7 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_823190-MLU72386623087_102023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 7"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="6">
+                    <!-- Image 8 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_926970-MLU72746679658_112023-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 8"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="7">
+                    <!-- Image 9 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_658870-MLU74856568393_032024-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 9"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="8">
+                    <!-- Image 10 -->
+                    <img src="https://http2.mlstatic.com/D_NQ_NP_2X_996876-MLU74129870779_012024-F.webp"
+                         alt="Micrófonos Inalámbricos Vista 10"
+                         class="w-full h-48 sm:h-56 object-cover rounded-xl shadow-lg cursor-pointer transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl border-2 border-gray-700 hover:border-cyan-500"
+                         data-gallery-image="9">
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="bg-gray-900 p-10 md:p-16 rounded-3xl shadow-2xl mb-20 border border-gray-800">
+                <h3 class="text-4xl font-black text-white mb-12 section-title">Rendimiento Excepcional</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                    <!-- Feature: 2 en 1 -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700">
+                        <div class="flex justify-center mb-6">
+                            <img src="https://http2.mlstatic.com/D_NQ_NP_2X_846430-MLU72386623059_102023-F.webp"
+                                 alt="Dos micrófonos simultáneos" class="w-full max-h-64 object-cover rounded-lg mb-4 opacity-90 border border-gray-600">
+                        </div>
+                        <h4 class="text-2xl font-bold text-cyan-400 mb-4">Doble Micrófono para Doble Impacto</h4>
+                        <p class="text-gray-300 leading-relaxed">Con dos micrófonos inalámbricos incluidos, este set es ideal para entrevistas, podcasts en pareja o cualquier escenario donde necesites capturar voces múltiples con calidad profesional.</p>
+                    </div>
+
+                    <!-- Feature: Reducción de ruido -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700">
+                        <div class="flex justify-center mb-6">
+                            <img src="https://http2.mlstatic.com/D_NQ_NP_2X_823190-MLU72386623087_102023-F.webp"
+                                 alt="Reducción de ruido profesional" class="w-full max-h-64 object-cover rounded-lg mb-4 opacity-90 border border-gray-600">
+                        </div>
+                        <h4 class="text-2xl font-bold text-cyan-400 mb-4">Cancelación de Ruido de Vanguardia</h4>
+                        <p class="text-gray-300 leading-relaxed">Aísla tu voz de distracciones ambientales. Nuestra tecnología de reducción de ruido avanzada garantiza grabaciones claras y nítidas, incluso en entornos ruidosos, para un audio impecable.</p>
+                    </div>
+
+                    <!-- Feature: Plug and Play -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700">
+                        <div class="flex justify-center mb-6">
+                            <img src="https://http2.mlstatic.com/D_NQ_NP_2X_896327-MLU72386623067_102023-F.webp"
+                                 alt="Conexión Plug and Play" class="w-full max-h-64 object-cover rounded-lg mb-4 opacity-90 border border-gray-600">
+                        </div>
+                        <h4 class="text-2xl font-bold text-cyan-400 mb-4">Conectividad Instantánea y Sin Esfuerzo</h4>
+                        <p class="text-gray-300 leading-relaxed">Conéctate y graba en segundos. La tecnología Plug & Play de 2.4 GHz ofrece una conexión estable y sin latencia, eliminando la necesidad de aplicaciones o configuraciones complejas.</p>
+                    </div>
+
+                    <!-- Feature: Compatibilidad -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700">
+                        <div class="flex justify-center mb-6">
+                            <img src="https://http2.mlstatic.com/D_NQ_NP_2X_745250-MLU72386769651_102023-F.webp"
+                                 alt="Compatibilidad iOS y Tipo C" class="w-full max-h-64 object-cover rounded-lg mb-4 opacity-90 border border-gray-600">
+                        </div>
+                        <h4 class="text-2xl font-bold text-cyan-400 mb-4">Compatibilidad Universal Multiplataforma</h4>
+                        <p class="text-gray-300 leading-relaxed">Diseñados para funcionar con sus dispositivos favoritos. Incluye un receptor Tipo C y un adaptador Lightning, asegurando una compatibilidad perfecta con iOS y dispositivos Android con función OTG.</p>
+                    </div>
+
+                    <!-- Feature: Portabilidad -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700">
+                        <h4 class="text-2xl font-bold text-cyan-400 mb-4">Diseño Compacto y Ultra-Portátil</h4>
+                        <p class="text-gray-300 leading-relaxed">Lleva tu estudio de grabación a cualquier lugar. Su diseño ligero y compacto facilita el transporte, permitiéndote capturar audio de alta fidelidad dondequiera que la inspiración te encuentre.</p>
+                    </div>
+
+                    <!-- Feature: Baja latencia -->
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700">
+                        <h4 class="text-2xl font-bold text-cyan-400 mb-4">Sincronización de Audio en Tiempo Real</h4>
+                        <p class="text-gray-300 leading-relaxed">Experimenta una latencia ultrabaja (menos de 16.5 ms) que garantiza una sincronización perfecta entre tu voz y el video. Olvídate de los desajustes y graba con total confianza.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Specifications Section -->
+            <section class="bg-gray-900 p-10 md:p-16 rounded-3xl shadow-2xl mb-20 border border-gray-800">
+                <h3 class="text-4xl font-black text-white mb-12 section-title">Especificaciones Técnicas Avanzadas</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-gray-300 text-lg">
+                    <p><strong class="text-cyan-400">Tipo de Micrófono:</strong> Condensador de alta sensibilidad</p>
+                    <p><strong class="text-cyan-400">Dimensiones:</strong> 9 cm x 3.2 cm x 1.5 cm (Diseño compacto)</p>
+                    <p><strong class="text-cyan-400">Material de Construcción:</strong> ABS de alta resistencia y durabilidad</p>
+                    <p><strong class="text-cyan-400">Color Disponible:</strong> Negro Noche</p>
+                    <p><strong class="text-cyan-400">Conectividad Inalámbrica:</strong> Frecuencia de 2.4 GHz</p>
+                    <p><strong class="text-cyan-400">Latencia de Transmisión:</strong> Ultra-baja, inferior a 16.5 ms</p>
+                    <p><strong class="text-cyan-400">Compatibilidad de Dispositivos:</strong> Plena compatibilidad con iOS (Lightning) y Android (Tipo C con soporte OTG)</p>
+                </div>
+            </section>
+
+            <!-- What's Included Section -->
+            <section class="bg-gray-900 p-10 md:p-16 rounded-3xl shadow-2xl mb-20 border border-gray-800">
+                <h3 class="text-4xl font-black text-white mb-12 section-title">Contenido del Paquete</h3>
+                <ul class="list-disc list-inside text-gray-300 text-lg md:text-xl space-y-4 pl-6">
+                    <li><strong class="text-cyan-400">2x</strong> Micrófonos Inalámbricos Recargables de Alta Fidelidad</li>
+                    <li><strong class="text-cyan-400">1x</strong> Receptor Wireless con Conexión Tipo C</li>
+                    <li><strong class="text-cyan-400">1x</strong> Cable USB Tipo C para Carga Rápida de los Micrófonos</li>
+                    <li><strong class="text-cyan-400">1x</strong> Adaptador OTG Tipo C a Lightning (para dispositivos iPhone/iPad)</li>
+                </ul>
+            </section>
+
+            <!-- Call to Action Section (Bottom) -->
+            <section class="bg-gradient-to-r from-teal-700 to-cyan-900 p-12 rounded-3xl text-center shadow-3xl border-4 border-cyan-600">
+                <h3 class="text-5xl font-extrabold text-white mb-8 leading-tight drop-shadow-lg">¡Transforma Tu Sonido Ahora!</h3>
+                <p class="text-2xl text-cyan-100 mb-10 leading-relaxed">
+                    No comprometas la calidad de tu audio. Eleva tus videos, podcasts y transmisiones en vivo a un nivel profesional con nuestros micrófonos inalámbricos. ¡Haz clic y vive la experiencia!
+                </p>
+                <a href="https://wa.me/573222117202?text=Hola!%20Vengo%20de%20la%20p%C3%A1gina%20web%20y%20quiero%20comprar%20los%20micr%C3%B3fonos."
+                   class="inline-block bg-white text-gray-900 font-bold py-6 px-16 rounded-full shadow-lg transform transition duration-300 hover:scale-105 hover:bg-gray-200 text-3xl tracking-wider uppercase button-glow">
+                    Comprar Ahora <span class="ml-4 text-4xl">🚀</span>
+                </a>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 py-8 px-6 md:px-20 text-center rounded-t-3xl mt-20 shadow-xl border-t border-gray-800">
+            <p class="text-gray-500 text-md tracking-wide">&copy; 2025 TecnologySmith. Todos los derechos reservados. <span class="text-cyan-400">Innovación en audio al alcance de sus manos.</span></p>
+        </footer>
+    </div>
+
+    <!-- Gallery Overlay Modal -->
+    <div id="galleryOverlay" class="gallery-overlay">
+        <div class="gallery-content">
+            <img id="overlayImage" src="" alt="Micrófono en Galería">
+            <span id="closeGallery" class="gallery-close">X</span>
+            <span id="prevImage" class="gallery-nav-button gallery-prev">&lt;</span>
+            <span id="nextImage" class="gallery-nav-button gallery-next">&gt;</span>
+        </div>
+    </div>
+
+    <script>
+        const galleryImages = [
+            'https://http2.mlstatic.com/D_NQ_NP_2X_901263-MLU72321220448_102023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_745250-MLU72386769651_102023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_678704-MLU72386769661_102023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_846430-MLU72386623059_102023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_896327-MLU72386623067_102023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_872481-MLU72386623073_102023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_823190-MLU72386623087_102023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_926970-MLU72746679658_112023-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_658870-MLU74856568393_032024-F.webp',
+            'https://http2.mlstatic.com/D_NQ_NP_2X_996876-MLU74129870779_012024-F.webp'
+        ];
+
+        let currentImageIndex = 0;
+        const overlay = document.getElementById('galleryOverlay');
+        const overlayImage = document.getElementById('overlayImage');
+        const closeButton = document.getElementById('closeGallery');
+        const prevButton = document.getElementById('prevImage');
+        const nextButton = document.getElementById('nextImage');
+        const galleryThumbnails = document.querySelectorAll('[data-gallery-image]');
+
+        // Function to open the gallery
+        function openGallery(index) {
+            currentImageIndex = index;
+            if (currentImageIndex < 0 || currentImageIndex >= galleryImages.length) {
+                currentImageIndex = 0;
+            }
+            overlayImage.src = galleryImages[currentImageIndex];
+            overlay.classList.add('visible');
+        }
+
+        // Function to close the gallery
+        function closeGallery() {
+            overlay.classList.remove('visible');
+        }
+
+        // Function to show the next image
+        function showNextImage() {
+            currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+            overlayImage.src = galleryImages[currentImageIndex];
+        }
+
+        // Function to show the previous image
+        function showPrevImage() {
+            currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+            overlayImage.src = galleryImages[currentImageIndex];
+        }
+
+        // Event listeners for thumbnails
+        galleryThumbnails.forEach((img, index) => {
+            img.addEventListener('click', () => openGallery(index));
+        });
+
+        // Event listeners for gallery controls
+        closeButton.addEventListener('click', closeGallery);
+        nextButton.addEventListener('click', showNextImage);
+        prevButton.addEventListener('click', showPrevImage);
+
+        // Close gallery when clicking outside the image
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                closeGallery();
+            }
+        });
+
+        // Keyboard navigation (optional, for desktop users)
+        document.addEventListener('keydown', (e) => {
+            if (overlay.classList.contains('visible')) {
+                if (e.key === 'Escape') {
+                    closeGallery();
+                } else if (e.key === 'ArrowRight') {
+                    showNextImage();
+                } else if (e.key === 'ArrowLeft') {
+                    showPrevImage();
+                }
+            }
+        });
+
+
+        // --- Gemini AI Integration ---
+
+        // Helper function for exponential backoff
+        async function fetchWithExponentialBackoff(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status === 429 && i < maxRetries - 1) { // Too Many Requests
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000; // Exponential backoff with jitter
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        console.error("Fetch failed after multiple retries:", error);
+                        throw error;
+                    }
+                }
+            }
+        }
+
+
+        // Content Idea Generator
+        const contentIdeaInput = document.getElementById('contentIdeaInput');
+        const generateIdeasBtn = document.getElementById('generateIdeasBtn');
+        const ideasLoading = document.getElementById('ideasLoading');
+        const contentIdeasOutput = document.getElementById('contentIdeasOutput');
+
+        generateIdeasBtn.addEventListener('click', async () => {
+            const prompt = contentIdeaInput.value.trim();
+            if (!prompt) {
+                contentIdeasOutput.innerHTML = '<p class="text-red-400">Por favor, describe tu proyecto para generar ideas.</p>';
+                return;
+            }
+
+            ideasLoading.classList.remove('hidden');
+            contentIdeasOutput.innerHTML = ''; // Clear previous ideas
+
+            try {
+                let chatHistory = [];
+                const userPrompt = `Genera 3 ideas creativas para contenido de audio/video, entrevistas o transmisiones en vivo, basado en la siguiente descripción del usuario. Cada idea debe incluir un título breve y una descripción de 2-3 líneas sobre el formato y el tema. Asegúrate de que las ideas sean variadas y relevantes para el uso de micrófonos de alta calidad. Descripción del usuario: ${prompt}`;
+                chatHistory.push({ role: "user", parts: [{ text: userPrompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will automatically provide it in runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/^- (.*?)<br>/gm, '<li>$1</li>')
+                                            .replace(/\n/g, '<br>');
+                    contentIdeasOutput.innerHTML = formattedText;
+                } else {
+                    contentIdeasOutput.innerHTML = '<p class="text-red-400">No se pudieron generar ideas. Intenta de nuevo.</p>';
+                }
+            } catch (error) {
+                console.error("Error generating content ideas:", error);
+                contentIdeasOutput.innerHTML = `<p class="text-red-400">Error al conectar con la IA. (${error.message})</p>`;
+            } finally {
+                ideasLoading.classList.add('hidden');
+            }
+        });
+
+        // Slogan Generator
+        const sloganInput = document.getElementById('sloganInput');
+        const generateSlogansBtn = document.getElementById('generateSlogansBtn');
+        const slogansLoading = document.getElementById('slogansLoading');
+        const sloganOutput = document.getElementById('sloganOutput');
+
+        generateSlogansBtn.addEventListener('click', async () => {
+            const prompt = sloganInput.value.trim();
+            if (!prompt) {
+                sloganOutput.innerHTML = '<p class="text-red-400">Por favor, describe tu contenido para generar slogans.</p>';
+                return;
+            }
+
+            slogansLoading.classList.remove('hidden');
+            sloganOutput.innerHTML = ''; // Clear previous slogans
+
+            try {
+                let chatHistory = [];
+                const userPrompt = `Genera 5 slogans cortos y pegadizos para un canal o contenido de audio/video. Los slogans deben ser concisos, memorables y reflejar la esencia del contenido. Descripción del contenido: ${prompt}`;
+                chatHistory.push({ role: "user", parts: [{ text: userPrompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas will automatically provide it in runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/^- (.*?)<br>/gm, '<li>$1</li>')
+                                            .replace(/\n/g, '<br>');
+                    sloganOutput.innerHTML = formattedText;
+                } else {
+                    sloganOutput.innerHTML = '<p class="text-red-400">No se pudieron generar slogans. Intenta de nuevo.</p>';
+                }
+            } catch (error) {
+                console.error("Error generating slogans:", error);
+                sloganOutput.innerHTML = `<p class="text-red-400">Error al conectar con la IA. (${error.message})</p>`;
+            } finally {
+                slogansLoading.classList.add('hidden');
+            }
+        });
+
+    </script>
+</body>
+</html>
